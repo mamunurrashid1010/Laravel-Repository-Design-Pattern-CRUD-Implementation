@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('category.index');
 });
 
 // Category
@@ -24,7 +24,7 @@ Route::group(['prefix'=>'category'],function (){
     Route::get('create',[CategoryController::class,'create'])->name('category.create');
     Route::post('store',[CategoryController::class,'store'])->name('category.store');
     Route::get('edit/{id}',[CategoryController::class,'edit'])->name('category.edit');
-    Route::post('update',[CategoryController::class,'update'])->name('category.update');
+    Route::post('update/{id}',[CategoryController::class,'update'])->name('category.update');
     Route::get('show/{id}',[CategoryController::class,'show'])->name('category.show');
     Route::post('delete/{id}',[CategoryController::class,'delete'])->name('category.delete');
 });

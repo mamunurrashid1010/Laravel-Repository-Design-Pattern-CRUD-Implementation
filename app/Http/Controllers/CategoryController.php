@@ -15,6 +15,12 @@ class CategoryController extends Controller
         $this->categoryRepository = $categoryRepository;
     }
 
+    // index
+    public function index(){
+        $categories = $this->categoryRepository->allCategories();
+        return view('categories.index', compact('categories'));
+    }
+
     // create
     public function create(){
         return view('categories.create');
@@ -47,12 +53,12 @@ class CategoryController extends Controller
             'name' => 'required',
         ]);
         $this->categoryRepository->updateCategory($data, $id);
-        return redirect()->route('categories.index')->with('message','update successfully');
+        return redirect()->route('category.index')->with('message','update successfully');
     }
 
     // delete
     public function delete($id){
         $this->categoryRepository->destroyCategory($id);
-        return redirect()->route('categories.index')->with('message', 'Category Delete Successfully');
+        return redirect()->route('category.index')->with('message', 'Category Delete Successfully');
     }
 }
