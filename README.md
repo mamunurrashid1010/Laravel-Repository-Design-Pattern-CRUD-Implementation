@@ -1,64 +1,213 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+## Laravel 9 Repository Design Pattern CRUD Implementation
+In this project, here i use repository design pattern and make a CRUD application using laravel repository design pattern.
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Implementation Process
+##### 1. Create new laravel project via composer
+```
+composer create-project laravel/laravel Laravel-Repository-Design-Pattern-CRUD-Implementation
+```
 
-## About Laravel
+Go to project directory ```cd Laravel-Repository-Design-Pattern-CRUD-Implementation``` or open project with IDE.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+##### 2. Create a new database
+Here I'm using my MySQL PHPMyAdmin to create a database.<br>
+Open ``` .env ``` file and add your database credentials.
+```
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=testdb
+DB_USERNAME=root
+DB_PASSWORD=
+```
+Run migration artisan command
+```
+php artisan migrate
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+##### 3. Category Model, Migration file, Controller Create 
+Now create model, migration file, controller for Category
+```
+php artisan make:model Categories -mc
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Then open Categories migration file and add name column
+```
+public function up()
+    {
+        Schema::create('categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('name'); //new added
+            $table->timestamps();
+        });
+    }
+```
+Then run migration artisan command
+```
+php artisan migrate
+```
 
-## Learning Laravel
+##### 4. Repository Interface Create for Categories
+```App\Repositories\Interfaces\CategoryRepositoryInterface.php```
+``` 
+<?php
+namespace App\Repositories\Interfaces;
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Interface CategoryRepositoryInterface{
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    public function allCategories();
+    public function storeCategory($data);
+    public function findCategory($id);
+    public function updateCategory($data, $id);
+    public function destroyCategory($id);
 
-## Laravel Sponsors
+}
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+##### 5. Repository Class Create and method implement
+```App\Repositories\CategoryRepository.php```
+``` 
+<?php
 
-### Premium Partners
+namespace App\Repositories;
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+use App\Repositories\Interfaces\CategoryRepositoryInterface;
+use App\Models\Category;
 
-## Contributing
+class CategoryRepository implements CategoryRepositoryInterface{
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    public function allCategories(){
+        return Category::all();
+    }
 
-## Code of Conduct
+    public function storeCategory($data){
+        return Category::create($data);
+    }
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+    public function findCategory($id){
+        return Category::find($id);
+    }
 
-## Security Vulnerabilities
+    public function updateCategory($data, $id){
+        $category = Category::where('id',$id)->first();
+        $category->name = $data['name'];
+        $category->save();
+    }
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+    public function destroyCategory($id){
+        $category = Category::find($id);
+        $category->delete();
+    }
+}
 
-## License
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+##### 6. Bind Repository in ServiceProvider
+open ```app/Providers/AppServiceProvider.php```  and bind
+``` 
+public function register()
+    {
+        $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
+    }
+```
+
+##### 7. Create route for Categories CRUD
+open ```routes\web.php```  and add this
+```
+<?php
+
+use App\Http\Controllers\CategoryController;
+use Illuminate\Support\Facades\Route;
+
+// Category
+Route::group(['prefix'=>'category'],function (){
+    Route::get('index',[CategoryController::class,'index'])->name('category.index');
+    Route::get('create',[CategoryController::class,'create'])->name('category.create');
+    Route::post('store',[CategoryController::class,'store'])->name('category.store');
+    Route::get('edit/{id}',[CategoryController::class,'edit'])->name('category.edit');
+    Route::post('update/{id}',[CategoryController::class,'update'])->name('category.update');
+    Route::get('show/{id}',[CategoryController::class,'show'])->name('category.show');
+    Route::post('delete/{id}',[CategoryController::class,'delete'])->name('category.delete');
+});
+```
+
+##### 8. Categories Controller CRUD method implementation
+open ```App\Http\Controllers\CategoryController.php```  and add this
+```
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use App\Repositories\Interfaces\CategoryRepositoryInterface;
+use Illuminate\Http\Request;
+
+class CategoryController extends Controller
+{
+    private $categoryRepository;
+
+    public function __construct(CategoryRepositoryInterface $categoryRepository)
+    {
+        $this->categoryRepository = $categoryRepository;
+    }
+
+    // index
+    public function index(){
+        $categories = $this->categoryRepository->allCategories();
+        return view('categories.index', compact('categories'));
+    }
+
+    // create
+    public function create(){
+        return view('categories.create');
+    }
+
+    // store
+    public function store(Request $request){
+        $data = $request->validate([
+            'name' => 'required',
+        ]);
+        $this->categoryRepository->storeCategory($data);
+        return redirect()->route('category.index')->with('message', 'create successfully');
+    }
+
+    // show
+    public function show($id){
+        $category = $this->categoryRepository->findCategory($id);
+        return view('categories.details', compact('category'));
+    }
+
+    // edit
+    public function edit($id){
+        $category = $this->categoryRepository->findCategory($id);
+        return view('categories.edit', compact('category'));
+    }
+
+    // update
+    public function update(Request $request, $id){
+        $data = $request->validate([
+            'name' => 'required',
+        ]);
+        $this->categoryRepository->updateCategory($data, $id);
+        return redirect()->route('category.index')->with('message','update successfully');
+    }
+
+    // delete
+    public function delete($id){
+        $this->categoryRepository->destroyCategory($id);
+        return redirect()->route('category.index')->with('message', 'Category Delete Successfully');
+    }
+}
+
+```
+
+##### 9. Create view file and implement
+```resources\views\categories\index.blade.php```
+```resources\views\categories\create.blade.php```
+```resources\views\categories\edit.blade.php```
+```resources\views\categories\details.blade.php```
+<br>
+Follow source code for view implementation.
+
+Then run  ```php artisan serve``` & you can see the project on ```http://127.0.0.1:8000```
+###### Completed.
